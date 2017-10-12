@@ -15,6 +15,11 @@
 #include "pinmappings.h"
 #include "clock.h"
 #include "stm32746g_discovery_lcd.h"
+#include "adc.h"
+
+//Pin map
+gpio_pin_t pot = {PA_0, GPIOA, GPIO_PIN_0};
+
 
 // LCD DEFINES
 
@@ -37,6 +42,9 @@ int main()
   // properly
   HAL_Init();
   init_sysclk_216MHz();
+	
+	//Pot setup
+  init_adc(pot);
   
   // initialise the lcd
   BSP_LCD_Init();
@@ -44,14 +52,14 @@ int main()
   BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
 
   // set the background colour to blue and clear the lcd
-  BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
-  BSP_LCD_Clear(LCD_COLOR_BLUE);
+  BSP_LCD_SetBackColor(LCD_COLOR_LIGHTCYAN);
+  BSP_LCD_Clear(LCD_COLOR_LIGHTCYAN);
   
   // set the font to use
   BSP_LCD_SetFont(&Font24); 
   
   // print the welcome message ...
-  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+  BSP_LCD_SetTextColor(LCD_COLOR_ORANGE);
   BSP_LCD_DisplayStringAtLine(0, (uint8_t *)BOARDER);
   BSP_LCD_DisplayStringAtLine(1, (uint8_t *)welcome_message[0]);
   BSP_LCD_DisplayStringAtLine(2, (uint8_t *)welcome_message[1]);
@@ -61,17 +69,22 @@ int main()
   HAL_Delay(5000);
   
   // display an "uptime" counter
-  BSP_LCD_DisplayStringAtLine(5, (uint8_t *)"Current uptime =");
   int counter = 0;
   while(1)
   {
     // format a string based around the uptime counter
     char str[20];
-    sprintf(str, "%d s", counter++);
+		char adcstr[20];
+    sprintf(str, "Current uptime = %d s", counter++);
+		
+		uint16_t adc_val = read_adc(pot);
+		sprintf(adcstr, "ADC = %d", adc_val);
     
     // print the message to the lcd
-    BSP_LCD_ClearStringLine(6);
-    BSP_LCD_DisplayStringAtLine(6, (uint8_t *)str);
+    BSP_LCD_ClearStringLine(5);
+    BSP_LCD_DisplayStringAtLine(5, (uint8_t *)str);
+		BSP_LCD_ClearStringLine(6);
+    BSP_LCD_DisplayStringAtLine(6, (uint8_t *)adcstr);
     
     HAL_Delay(1000);
   }
