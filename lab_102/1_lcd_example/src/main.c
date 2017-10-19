@@ -16,11 +16,13 @@
 #include "clock.h"
 #include "stm32746g_discovery_lcd.h"
 #include "adc.h"
+#include "gpio.h"
 
 //Pin map
 gpio_pin_t pot = {PA_0, GPIOA, GPIO_PIN_0};
-
-
+gpio_pin_t led3 = {PI_2, GPIOI, GPIO_PIN_2};
+gpio_pin_t led1 = {PA_8, GPIOA, GPIO_PIN_8};
+gpio_pin_t led2 = {PA_15, GPIOA, GPIO_PIN_15};
 // LCD DEFINES
 
 // define a message boarder (note the lcd is 28 characters wide using Font24)
@@ -43,8 +45,11 @@ int main()
   HAL_Init();
   init_sysclk_216MHz();
 	
-	//Pot setup
+	//Pin setup
   init_adc(pot);
+	init_gpio(led1,OUTPUT);
+	init_gpio(led2,OUTPUT);
+	init_gpio(led3,OUTPUT);
   
   // initialise the lcd
   BSP_LCD_Init();
@@ -75,17 +80,47 @@ int main()
     // format a string based around the uptime counter
     char str[20];
 		char adcstr[20];
+		char adcpen[20];
+		
     sprintf(str, "Current uptime = %d s", counter++);
 		
+		// read from potentiometer
 		uint16_t adc_val = read_adc(pot);
-		sprintf(adcstr, "ADC = %d", adc_val);
+		float adcpercent = (adc_val / 4095.0) * 100;
+		
+		// converting to strings
+		sprintf(adcstr, "ADC = %d", adc_val);		
+		sprintf(adcpen, "Percentage = %3.2f", adcpercent);
+		
+		//LEDs
+		if(adcpercent < 33.33)
+		{
+			write_gpio(led1, HIGH);
+			write_gpio(led2, LOW);
+			write_gpio(led3, LOW);
+		}
+		else if(adcpercent > 33.34 && adcpercent < 66.66)
+		{
+			write_gpio(led2, HIGH);
+			write_gpio(led1, LOW);
+			write_gpio(led3, LOW);
+		}
+		else if(adcpercent > 66.67)
+		{
+			write_gpio(led3, HIGH);
+			write_gpio(led1, LOW);
+			write_gpio(led2, LOW);
+		}
     
+		
     // print the message to the lcd
     BSP_LCD_ClearStringLine(5);
     BSP_LCD_DisplayStringAtLine(5, (uint8_t *)str);
 		BSP_LCD_ClearStringLine(6);
     BSP_LCD_DisplayStringAtLine(6, (uint8_t *)adcstr);
-    
+		BSP_LCD_ClearStringLine(7);
+    BSP_LCD_DisplayStringAtLine(7, (uint8_t *)adcpen);
+		
     HAL_Delay(1000);
   }
 }
