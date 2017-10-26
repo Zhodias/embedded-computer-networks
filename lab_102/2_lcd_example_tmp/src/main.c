@@ -19,7 +19,7 @@
 #include "gpio.h"
 
 //Pin map
-gpio_pin_t pot = {PA_0, GPIOA, GPIO_PIN_0};
+gpio_pin_t pot = {PF_6, GPIOF, GPIO_PIN_6};
 gpio_pin_t led3 = {PI_2, GPIOI, GPIO_PIN_2};
 gpio_pin_t led1 = {PA_8, GPIOA, GPIO_PIN_8};
 gpio_pin_t led2 = {PA_15, GPIOA, GPIO_PIN_15};
@@ -47,6 +47,7 @@ int main()
 	
 	//Pin setup
   init_adc(pot);
+	
 	init_gpio(led1,OUTPUT);
 	init_gpio(led2,OUTPUT);
 	init_gpio(led3,OUTPUT);
@@ -85,39 +86,19 @@ int main()
     char str[20];
 		char adcstr[20];
 		char adcpen[20];
-		float barHeight;
+		char adctmp[20];
 		
     sprintf(str, "Current uptime = %d s", counter++);
 		
 		// read from potentiometer
 		uint16_t adc_val = read_adc(pot);
-		float adcpercent = (adc_val / 4095.0) * 100;
-		barHeight = adcpercent * 4.8;
+		float adc_vol = (adc_val / 4095.0) * 3.3;
+		float adc_tmp = ((adc_vol * 1000) - 500) / 10.0;
 		
 		// converting to strings
 		sprintf(adcstr, "ADC = %d", adc_val);		
-		sprintf(adcpen, "Percentage = %3.2f", adcpercent);
-		
-		//LEDs
-		if(adcpercent < 33.33)
-		{
-			write_gpio(led1, HIGH);
-			write_gpio(led2, LOW);
-			write_gpio(led3, LOW);
-		}
-		else if(adcpercent > 33.34 && adcpercent < 66.66)
-		{
-			write_gpio(led2, HIGH);
-			write_gpio(led1, LOW);
-			write_gpio(led3, LOW);
-		}
-		else if(adcpercent > 66.67)
-		{
-			write_gpio(led3, HIGH);
-			write_gpio(led1, LOW);
-			write_gpio(led2, LOW);
-		}
-    
+		sprintf(adcpen, "Voltage = %3.2f", adc_vol);
+		sprintf(adctmp, "Temp = %3.2f", adc_tmp);    
 		
     // print the message to the lcd
     BSP_LCD_ClearStringLine(5);
@@ -126,13 +107,10 @@ int main()
     BSP_LCD_DisplayStringAtLine(6, (uint8_t *)adcstr);
 		BSP_LCD_ClearStringLine(7);
     BSP_LCD_DisplayStringAtLine(7, (uint8_t *)adcpen);
-		//BSP_LCD_FillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Height, uint16_t Width);
-		BSP_LCD_FillRect(0, 200, barHeight, 20);
+		BSP_LCD_ClearStringLine(8);
+    BSP_LCD_DisplayStringAtLine(8, (uint8_t *)adctmp);
 		
 		
     HAL_Delay(1000);
-		BSP_LCD_SetTextColor(LCD_COLOR_LIGHTCYAN);
-		BSP_LCD_FillRect(0, 200, barHeight, 20);
-		BSP_LCD_SetTextColor(LCD_COLOR_ORANGE);
   }
 }
