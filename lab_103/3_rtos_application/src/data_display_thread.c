@@ -66,10 +66,9 @@ void display_thread(void const *argument)
     if(evt.status == osEventMail)
     {
       mail_t *mail = (mail_t*)evt.value.p;
-      printf("\nVoltage: %.2f V\n\r"        , mail->voltage);
-      printf("Current: %.2f A\n\r"          , mail->current);
-      printf("Number of cycles: %u\n\r"     , mail->counter);
-      printf("Number of fucks given: %d\n\r", mail->fucks_given);
+      printf("\nVoltage: %.2f V\n\r"   , mail->voltage);
+      printf("Current: %.2f A\n\r"     , mail->current);
+      printf("Number of cycles: %u\n\r", mail->counter);
 
       osMailFree(mail_box, mail);
     }
