@@ -23,6 +23,7 @@ extern int init_thread(void);
 // this is the main method
 int main()
 { 
+	
   // initialise the real time kernel
   osKernelInitialize();
   
@@ -39,6 +40,7 @@ int main()
   //
   // note also that we need to set the correct core clock in the RTX_Conf_CM.c
   // file (OS_CLOCK) which we can do using the configuration wizard
+	 
     
   // initialise our threads
   init_data_thread();
@@ -47,9 +49,4 @@ int main()
   
   // start everything running
   osKernelStart();
-}
-
-void HAL_Delay(__IO uint32_t Delay)
-{
-	osDelay(Delay);
 }

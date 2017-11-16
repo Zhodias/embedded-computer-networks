@@ -23,6 +23,7 @@ typedef struct
 {
   float     voltage;
   float     current;
+	int				fucks_given;
   uint32_t  counter;
 } 
 mail_t;

@@ -12,6 +12,7 @@
 // include cmsis_os for the rtos api and the stdio package for printing
 #include "cmsis_os.h"
 #include <stdio.h>
+#include "stm32746g_discovery_lcd.h"
 
 // include main.h (this is where we initialise the mail type)
 #include "main.h"
@@ -33,6 +34,8 @@ osThreadDef(display_thread, osPriorityNormal, 1, 0);
 extern osMailQId mail_box;
 
 // THREAD INITIALISATION
+
+
 
 // create the data display thread
 int init_display_thread(void)
@@ -61,14 +64,49 @@ void display_thread(void const *argument)
   // infinite loop getting out fake data ...
   while(1)
   {
+		//Strings for lcd
+		char volstr[20];
+		char curstr[20];
+		char countstr[20];
+		char fucksstr[20];
+		
     // get the data ...
     osEvent evt = osMailGet(mail_box, osWaitForever);
     if(evt.status == osEventMail)
     {
       mail_t *mail = (mail_t*)evt.value.p;
-      printf("\nVoltage: %.2f V\n\r"   , mail->voltage);
-      printf("Current: %.2f A\n\r"     , mail->current);
-      printf("Number of cycles: %u\n\r", mail->counter);
+      printf("\nVoltage: %.2f V\n\r"        , mail->voltage);
+      printf("Current: %.2f A\n\r"          , mail->current);
+      printf("Number of cycles: %u\n\r"     , mail->counter);
+      printf("Number of fucks given: %d\n\r", mail->fucks_given);
+			
+			//copy data into strings
+			sprintf(volstr, "voltage: %3.2f", mail->voltage);
+			sprintf(curstr, "Current: %3.2f", mail->current);
+			sprintf(countstr, "Count: %d", mail->counter);
+			sprintf(fucksstr, "Fucks given: %d", mail->fucks_given);
+			
+			BSP_LCD_ClearStringLine(5);
+			BSP_LCD_DisplayStringAtLine(5, (uint8_t *)volstr);
+			BSP_LCD_ClearStringLine(6);
+			BSP_LCD_DisplayStringAtLine(6, (uint8_t *)curstr);
+			BSP_LCD_ClearStringLine(7);
+			BSP_LCD_DisplayStringAtLine(7, (uint8_t *)countstr);
+			BSP_LCD_ClearStringLine(8);
+			BSP_LCD_DisplayStringAtLine(8, (uint8_t *)fucksstr);
+			
+			// initialise the lcd
+  BSP_LCD_Init();
+  BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, SDRAM_DEVICE_ADDR);
+  BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
+
+  // set the background colour to blue and clear the lcd
+  BSP_LCD_SetBackColor(LCD_COLOR_LIGHTCYAN);
+  BSP_LCD_Clear(LCD_COLOR_LIGHTCYAN);
+  
+  // set the font to use
+  BSP_LCD_SetFont(&Font24); 
+			
 
       osMailFree(mail_box, mail);
     }
