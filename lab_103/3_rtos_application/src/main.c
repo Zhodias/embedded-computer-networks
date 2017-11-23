@@ -20,6 +20,15 @@ extern int init_data_thread(void);
 extern int init_display_thread(void);
 extern int init_thread(void);
 
+// OVERRIDE HAL DELAY
+
+// make HAL_Delay point to osDelay (otherwise any use of HAL_Delay breaks things)
+void HAL_Delay(__IO uint32_t Delay)
+{
+	osDelay(Delay);
+}
+
+
 // this is the main method
 int main()
 { 

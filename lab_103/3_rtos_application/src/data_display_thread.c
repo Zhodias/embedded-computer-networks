@@ -42,8 +42,16 @@ int init_display_thread(void)
 {
   // initialize peripherals (i.e. the uart) here
   init_uart(9600);
-  printf("display thread up and running ...\r\n");
-
+  printf("display thread up and running ...\r\n");	
+	
+	// initialise the lcd
+  BSP_LCD_Init();
+  BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, SDRAM_DEVICE_ADDR);
+  BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
+  
+  // set the font to use
+  BSP_LCD_SetFont(&Font24); 
+	
   // create the thread and get its task id
   tid_display_thread = osThreadCreate(osThread(display_thread), NULL);
 
@@ -61,14 +69,15 @@ int init_display_thread(void)
 // the uart
 void display_thread(void const *argument)
 {
+  // set the background colour to blue and clear the lcd
+  BSP_LCD_SetBackColor(LCD_COLOR_LIGHTCYAN);
+  BSP_LCD_Clear(LCD_COLOR_LIGHTCYAN);	
+	
   // infinite loop getting out fake data ...
   while(1)
   {
 		//Strings for lcd
-		char volstr[20];
-		char curstr[20];
-		char countstr[20];
-		char fucksstr[20];
+		char str[20];
 		
     // get the data ...
     osEvent evt = osMailGet(mail_box, osWaitForever);
@@ -81,31 +90,26 @@ void display_thread(void const *argument)
       printf("Number of fucks given: %d\n\r", mail->fucks_given);
 			
 			//copy data into strings
-			sprintf(volstr, "voltage: %3.2f", mail->voltage);
-			sprintf(curstr, "Current: %3.2f", mail->current);
-			sprintf(countstr, "Count: %d", mail->counter);
-			sprintf(fucksstr, "Fucks given: %d", mail->fucks_given);
-			
+			sprintf(str, "voltage: %3.2f", mail->voltage);
 			BSP_LCD_ClearStringLine(5);
-			BSP_LCD_DisplayStringAtLine(5, (uint8_t *)volstr);
-			BSP_LCD_ClearStringLine(6);
-			BSP_LCD_DisplayStringAtLine(6, (uint8_t *)curstr);
-			BSP_LCD_ClearStringLine(7);
-			BSP_LCD_DisplayStringAtLine(7, (uint8_t *)countstr);
-			BSP_LCD_ClearStringLine(8);
-			BSP_LCD_DisplayStringAtLine(8, (uint8_t *)fucksstr);
+			BSP_LCD_DisplayStringAtLine(5, (uint8_t *)str);
 			
-			// initialise the lcd
-  BSP_LCD_Init();
-  BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, SDRAM_DEVICE_ADDR);
-  BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
+			sprintf(str, "Current: %3.2f", mail->current);
+			BSP_LCD_ClearStringLine(6);
+			BSP_LCD_DisplayStringAtLine(6, (uint8_t *)str);
+			
+			sprintf(str, "Count: %d", mail->counter);
+			BSP_LCD_ClearStringLine(7);
+			BSP_LCD_DisplayStringAtLine(7, (uint8_t *)str);
+			
+			sprintf(str, "Fucks given: %d", mail->fucks_given);
+			BSP_LCD_ClearStringLine(8);
+			BSP_LCD_DisplayStringAtLine(8, (uint8_t *)str);
 
-  // set the background colour to blue and clear the lcd
-  BSP_LCD_SetBackColor(LCD_COLOR_LIGHTCYAN);
-  BSP_LCD_Clear(LCD_COLOR_LIGHTCYAN);
-  
-  // set the font to use
-  BSP_LCD_SetFont(&Font24); 
+			
+			
+			
+			
 			
 
       osMailFree(mail_box, mail);
